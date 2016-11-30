@@ -4,7 +4,7 @@
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-		<title>reveal.js</title>
+		<title>Redux + Angular Presentation</title>
 
 		<link rel="stylesheet" href="css/reveal.css">
 		<link rel="stylesheet" href="css/theme/serif.css">
@@ -24,11 +24,44 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
-				<section id="fragments">
+				<section>
 					<h1>REDUX + ANGULAR 1.5</h1>
 					<h5 class="fragment">А что это?</h5>
 					<h5 class="fragment">А оно мне надо?</h5>
 					<h5 class="fragment">А пример можете показать?</h5>
+				</section>
+
+				<section>
+					<section>
+						<h2>Что же такое Redux?</h2>
+						<h5 class="fragment">
+							- это очень маленькая библиотека, которая позволяет Вам создать предсказуемый контейнер состояния для Вашего приложения.
+						</h5>
+					</section>
+					<section>
+						<h2 style="margin-bottom: 70px;">Три кита Redux</h2>
+						<ol>
+							<li style="margin-bottom: 40px;">
+								Состояние всего вашего приложения сохранено в дереве объектов внутри одного хранилища
+								<span style="color: darkorange;">(store)</span>.
+							</li>
+							<li style="margin-bottom: 40px;">
+								Единственный способ изменить состояние - это применить действие <span style="color: darkorange;">(action)</span>
+								- объект, который описывает, что случится.
+							</li>
+							<li style="margin-bottom: 40px;">
+								Для определения того, как дерево состояния будет трансформировано действиями,
+								Вы пишете чистые функции <span style="color: darkorange;">(reducer)</span>.
+							</li>
+						</ol>
+					</section>
+					<!--<section>
+						<img src="images/redux-with-and-without.svg">
+					</section>-->
+				</section>
+
+				<section>
+					<h2>А Вам то он зачем понадобился?</h2>
 				</section>
 			</div>
 		</div>
