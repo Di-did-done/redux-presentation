@@ -26,7 +26,7 @@
 			<div class="slides">
 				<section>
 					<h1>REDUX + ANGULAR 1.5</h1>
-					<h5 class="fragment">А что это?</h5>
+					<h5 class="fragment">А так можно?</h5>
 					<h5 class="fragment">А оно мне надо?</h5>
 					<h5 class="fragment">А пример можете показать?</h5>
 				</section>
@@ -62,14 +62,227 @@
 						<h2>А Вам то он зачем понадобился?</h2>
 					</section>
 					<section>
+						<h4>Angular 2: компонентная идеология</h4>
+						<h4>Angular 1.5: добавлен метод component</h4>
 						<img src="images/angular.svg" width="500px;">
 					</section>
 					<section>
-						картинка со старой структурой проектов
+						<h4>Неудобная внутренняя сруктура</h4>
+						<img src="images/old_structure_expanded.png">
 					</section>
 					<section>
+						<h4>Связь между компонентами</h4>
 						<img src="images/redux-with-and-without.svg">
 					</section>
+				</section>
+
+				<section>
+					<section>
+						<h2>Что мы сделали</h2>
+					</section>
+					<section>
+						<h2>ngRedux</h2>
+						<h2 style="text-decoration: line-through;">digestMiddleware</h2>
+					</section>
+					<section>
+						<h2>Новая внутренняя стуктура</h2>
+					</section>
+					<section>
+						<h2>Разделение на smart и dumb компоненты</h2>
+					</section>
+				</section>
+				<section>
+					<section>
+						<h2>Что в итоге получилось</h2>
+						<h4 class="fragment">посмотрим на примере</h4>
+					</section>
+					<section>
+						<h4>Новая структура</h4>
+						<img src="images/new_structure.png">
+					</section>
+					<section>
+						<h4>heroes-list.constants</h4>
+<pre><code class="hljs">export const LOADING_HEROES = 'HEROES_LIST__LOADING';
+export const LOADED_HEROES = 'HEROES_LIST__LOADED';
+
+export const SELECT_HERO = 'HEROES_LIST__SELECT_HERO';
+</code></pre>
+					</section>
+					<section>
+						<h4>heroes-list.actions</h4>
+<pre><code class="hljs">import * as ActionTypes from './heroes-list.constants';
+
+function loadingHeroes() {
+    return {
+        type: ActionTypes.LOADING_HEROES
+    };
+}
+
+function loadedHeroes(heroes) {
+    return {
+        type: ActionTypes.LOADED_HEROES,
+        payload: { heroes }
+    };
+}
+
+function selectHero(heroId) {
+    return {
+        type: ActionTypes.SELECT_HERO,
+        payload: { heroId }
+    }
+}
+
+const HeroesListActions = (HeroesService) => {
+    return {
+        dispatchLoadHeroes(options) {
+            return (dispatch) => {
+                dispatch(loadingHeroes());
+                return HeroesService.getList(options).then((heroes) => {
+                    dispatch(loadedHeroes(heroes));
+                });
+            };
+        },
+        dispatchSelectHero(heroId) {
+            return (dispatch) => {
+                dispatch(selectHero(heroId));
+            };
+        }
+    };
+};
+
+export default HeroesListActions;</code></pre>
+					</section>
+					<section>
+						<h4>heroes-list.reducer</h4>
+<pre><code class="hljs">import * as ActionTypes from './heroes-list.constants';
+
+const INITIAL_STATE = {
+    loading: false,
+    data: [],
+    selected: null
+};
+
+const heroesListReducer = (state = INITIAL_STATE, action) => {
+    switch (action.type) {
+        case ActionTypes.LOADING_HEROES: {
+            return {
+                ...state,
+                loading: true
+            };
+        }
+        case ActionTypes.LOADED_HEROES: {
+            return {
+                ...state,
+                loading: false,
+                data: action.payload.heroes
+            };
+        }
+        case ActionTypes.SELECT_HERO: {
+            return {
+                ...state,
+                selected: action.payload.heroId
+            }
+        }
+        default:
+            return state;
+    }
+};
+
+export default heroesListReducer;</code></pre>
+					</section>
+					<section>
+						<h4>heroes-list.selectors</h4>
+<pre><code class="hljs">export const getHeroes = state => state.heroes.listPage.list.data;
+export const isLoading = state => state.heroes.listPage.list.loading;</code></pre>
+					</section>
+					<section>
+						<h4>heroes-list.controller</h4>
+						<pre><code class="hljs">import _ from 'lodash';
+import { observer, observe } from 'redux-observers';
+
+import { getSelectedHero, getSelectedFilters } from 'module-heroes/common/redux/heroes-page.selectors';
+import { getHeroes, isLoading } from './redux/heroes-list.selectors';
+
+class HeroesListController {
+    constructor($ngRedux, HeroesListActions) {
+        this.unsubscribe = $ngRedux.connect(this._mapStateToThis, HeroesListActions)(this);
+        this.unobserve = observe($ngRedux, this.defineObservers());
+    }
+
+    $onInit() {
+        this.loadHeroes();
+    }
+
+    $onDestroy() {
+        this.unsubscribe();
+        this.unobserve();
+    }
+
+    defineObservers() {
+        const observers = [];
+
+        observers.push(observer(
+            state => getSelectedFilters(state),
+            (dispatch, current, previous) => {
+                if (current) {
+                    const params = {};
+
+                    _.forEach(current, (value, key) => {
+                        if (!_.isEmpty(value)) {
+                            params[key] = value;
+                        }
+                    });
+
+                    this.loadHeroes({params});
+                }
+            }
+        ));
+
+        return observers;
+    }
+
+    loadHeroes(options) {
+        this.dispatchLoadHeroes(options).then(() => {
+            if (this.heroes.length) {
+                this.dispatchSelectHero(this.heroes[0].id);
+            }
+        });
+    }
+
+    selectHero(heroId) {
+        this.dispatchSelectHero(heroId);
+    }
+
+    _mapStateToThis(state) {
+        return {
+            isLoading: isLoading(state),
+            heroes: getHeroes(state),
+            selected: getSelectedHero(state)
+        };
+    }
+}
+
+HeroesListController.$inject = ['$ngRedux', 'HeroesListActions'];
+
+export default HeroesListController;</code></pre>
+					</section>
+					<section>
+						<h4>Store</h4>
+						<img src="images/store_tree_light.png">
+					</section>
+				</section>
+
+				<section>
+					<h2>Трудности</h2>
+					<ul>
+						<li class="fragment">В целом переход на redux-концепцию</li>
+						<li class="fragment">Разбиение на smart и dumb компоненты</li>
+						<li class="fragment">Мало источников информации о Redux + Angular</li>
+					</ul>
+				</section>
+
+				<section>
+					<h1>Конец!</h1>
 				</section>
 			</div>
 		</div>
