@@ -4,6 +4,9 @@
  *
  * This theme is Copyright (C) 2012-2013 Owen Versteeg, http://owenversteeg.com - it is MIT licensed.
  */
+@import url(../../lib/font/bikinis/bikinis.css);
+@import url(../../lib/font/maple-3-cartoon/maple-3-cartoon.css);
+
 .reveal a {
   line-height: 1.3em; }
 
@@ -19,6 +22,14 @@ body {
   font-size: 36px;
   font-weight: normal;
   color: #000; }
+
+.reveal .bikinis-font {
+  font-family: 'Bikinis', Impact, sans-serif;
+}
+
+.reveal .maple-cartoons-font {
+  font-family: 'Maple Cartoon', Impact, sans-serif;
+}
 
 ::selection {
   color: #fff;

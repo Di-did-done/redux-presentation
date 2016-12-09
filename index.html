@@ -24,19 +24,28 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
-				<section>
+				<section data-background="images/slide-background_1.jpg">
 					<h1>REDUX + ANGULAR 1.5</h1>
-					<h5 class="fragment">А так можно?</h5>
-					<h5 class="fragment">А оно мне надо?</h5>
-					<h5 class="fragment">А пример можете показать?</h5>
+					<h5 class="fragment fade-up">А так можно?</h5>
+					<h5 class="fragment fade-left">А оно мне надо?</h5>
+					<h5 class="fragment fade-right">А пример можете показать?</h5>
+
+					<div class="fragment fade-out" data-fragment-index="1">
+						<h4>Dinara Krylova</h4>
+						<h4>FE developer, Positive Technologies</h4>
+					</div>
+
 				</section>
 
-				<section>
+				<section data-transition="zoom">
 					<section>
 						<h2>Что же такое Redux?</h2>
 						<h5 class="fragment">
 							- это очень маленькая библиотека, которая позволяет Вам создать предсказуемый контейнер состояния для Вашего приложения.
 						</h5>
+					</section>
+					<section>
+						<img src="images/components_relations.png">
 					</section>
 					<section>
 						<h2 style="margin-bottom: 70px;">Три кита Redux</h2>
@@ -55,11 +64,57 @@
 							</li>
 						</ol>
 					</section>
+					<section>
+						<h3>Data Flow</h3>
+						<img src="images/data_flow.png">
+					</section>
+					<section>
+						<h3>Простой пример</h3>
+						<pre><code>import { createStore } from 'redux';
+
+// This is a reducer
+function ratingCounter(state = 0, action) {
+    switch (action.type) {
+        case 'LIKE':
+            return state + 1;
+        case 'DISLIKE':
+            return state - 1;
+        default:
+            return state;
+    }
+}
+
+// This is an action creator
+function ratingUp() {
+    return {
+        type: 'LIKE'
+    };
+}
+function ratingDown() {
+    return {
+        type: 'DISLIKE'
+    };
+}
+
+// Create a Redux store holding the state of your app.
+// Its API is { subscribe, dispatch, getState }.
+const store = createStore(ratingCounter);
+
+// You can use subscribe() to update the UI in response to state changes.
+store.subscribe(() => {
+    console.log(store.getState());
+});
+
+// The only way to mutate the internal state is to dispatch an action.
+store.dispatch(ratingUp());
+store.dispatch(ratingDown());
+store.dispatch(ratingUp);</code></pre>
+					</section>
 				</section>
 
-				<section>
+				<section data-transition="convex">
 					<section>
-						<h2>А Вам то он зачем понадобился?</h2>
+						<h2>Наш путь к Redux</h2>
 					</section>
 					<section>
 						<h4>Angular 2: компонентная идеология</h4>
@@ -76,7 +131,7 @@
 					</section>
 				</section>
 
-				<section>
+				<section data-transition="concave">
 					<section>
 						<h2>Что мы сделали</h2>
 					</section>
@@ -91,7 +146,7 @@
 						<h2>Разделение на smart и dumb компоненты</h2>
 					</section>
 				</section>
-				<section>
+				<section data-transition="fade">
 					<section>
 						<h2>Что в итоге получилось</h2>
 						<h4 class="fragment">посмотрим на примере</h4>
@@ -299,6 +354,7 @@ export default HeroesListController;</code></pre>
 				dependencies: [
 					{ src: 'plugin/markdown/marked.js' },
 					{ src: 'plugin/markdown/markdown.js' },
+                    { src: 'plugin/zoom-js/zoom.js', async: true },
 					{ src: 'plugin/notes/notes.js', async: true },
 					{ src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
 				]
