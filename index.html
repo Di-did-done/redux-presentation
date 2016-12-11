@@ -108,7 +108,58 @@ store.subscribe(() => {
 // The only way to mutate the internal state is to dispatch an action.
 store.dispatch(ratingUp());
 store.dispatch(ratingDown());
-store.dispatch(ratingUp);</code></pre>
+store.dispatch(ratingUp());</code></pre>
+					</section>
+
+					<section>
+						<h3>combineReducers</h3>
+						<pre><code>import { combineReducers } from 'redux';
+
+function ratingReducer(state = 0, action) {
+    // как то вычисляет nextState...
+    return nextState
+}
+
+function counterReducer(state = 0, action) {
+    // как то вычисляет nextState...
+    return nextState
+}
+
+const appReducer = combineReducers({
+    rating: ratingReducer,
+    count: counterReducer
+});</code></pre>
+					</section>
+
+					<section>
+						<h3>Middlewares</h3>
+						<pre><code>import { createStore, applyMiddleware } from 'redux';
+
+const logger = store => next => action => {
+    console.log('dispatching', action)
+    let result = next(action)
+    console.log('next state', store.getState())
+    return result
+}
+
+const crashReporter = store => next => action => {
+    try {
+        return next(action)
+    } catch (err) {
+        console.error('Caught an exception!', err);
+        throw err;
+    }
+}
+
+const reducer = (state, action) {
+    return nextState;
+}
+
+const store = createStore(
+    reducer,
+    // applyMiddleware() говорит createStore() как обрабатывать мидлвэры
+    applyMiddleware(logger, crashReporter)
+);</code></pre>
 					</section>
 				</section>
 
@@ -137,13 +188,14 @@ store.dispatch(ratingUp);</code></pre>
 					</section>
 					<section>
 						<h2>ngRedux</h2>
-						<h2 style="text-decoration: line-through;">digestMiddleware</h2>
+						<h3 class="fragment" style="text-decoration: line-through;">digestMiddleware</h3>
 					</section>
 					<section>
-						<h2>Новая внутренняя стуктура</h2>
+						<h2>Новая внутренняя структура</h2>
 					</section>
 					<section>
-						<h2>Разделение на smart и dumb компоненты</h2>
+						<h3>Разделение на smart и dumb компоненты</h3>
+						<img src="images/Smart_and_dumb_components.png">
 					</section>
 				</section>
 				<section data-transition="fade">
@@ -154,6 +206,51 @@ store.dispatch(ratingUp);</code></pre>
 					<section>
 						<h4>Новая структура</h4>
 						<img src="images/new_structure.png">
+					</section>
+					<section>
+						<h4>app/index.js</h4>
+						<pre><code>import angular from 'angular';
+import ngRedux from 'common/redux';
+import thunkMiddleware from 'redux-thunk';
+
+import environment from 'environment';
+
+// app modules
+import { heroes } from 'module-heroes';
+
+// app component
+import AppComponent from './app.component';
+
+// app reducer
+import appRootReducers from './app.reducer';
+
+...
+
+const app = angular.module('app', [
+    ...environment.standardAngularModules,
+    heroes
+]);
+
+app
+    .component('app', AppComponent);
+
+app.config([
+    '$httpProvider', '$urlRouterProvider', '$stateProvider', '$translatePartialLoaderProvider', '$animateProvider',
+    '$ngReduxProvider', '$mdThemingProvider',
+    ($httpProvider, $urlRouterProvider, $stateProvider, $translatePartialLoaderProvider, $animateProvider,
+     $ngReduxProvider, $mdThemingProvider) => {
+        $ngReduxProvider.createStoreWith(appRootReducers, [thunkMiddleware], [
+            window.devToolsExtension ? window.devToolsExtension() : f => f
+        ]);
+
+        ...
+    }
+]);
+
+...
+
+export default app;
+</code></pre>
 					</section>
 					<section>
 						<h4>heroes-list.constants</h4>
@@ -209,12 +306,13 @@ export default HeroesListActions;</code></pre>
 					</section>
 					<section>
 						<h4>heroes-list.reducer</h4>
-<pre><code class="hljs">import * as ActionTypes from './heroes-list.constants';
+<pre><code class="hljs">import _ from 'lodash';
+import * as ActionTypes from './heroes-list.constants';
 
 const INITIAL_STATE = {
     loading: false,
-    data: [],
-    selected: null
+    byId: {},
+    selectedId: null
 };
 
 const heroesListReducer = (state = INITIAL_STATE, action) => {
@@ -226,16 +324,22 @@ const heroesListReducer = (state = INITIAL_STATE, action) => {
             };
         }
         case ActionTypes.LOADED_HEROES: {
+            const byId = {};
+
+            _.forEach(action.payload.heroes, (hero) => {
+                byId[hero.id] = hero;
+            });
+
             return {
                 ...state,
-                loading: false,
-                data: action.payload.heroes
+                byId,
+                loading: false
             };
         }
         case ActionTypes.SELECT_HERO: {
             return {
                 ...state,
-                selected: action.payload.heroId
+                selectedId: action.payload.heroId
             }
         }
         default:
@@ -247,8 +351,17 @@ export default heroesListReducer;</code></pre>
 					</section>
 					<section>
 						<h4>heroes-list.selectors</h4>
-<pre><code class="hljs">export const getHeroes = state => state.heroes.listPage.list.data;
-export const isLoading = state => state.heroes.listPage.list.loading;</code></pre>
+<pre><code class="hljs">import _ from 'lodash';
+import { createSelector } from 'reselect';
+
+import { getHeroesById } from 'module-heroes/common/redux/heroes-page.selectors';
+
+export const isLoading = state => state.heroes.listPage.list.loading;
+
+export const getHeroes = createSelector(
+    [getHeroesById],
+    (heroesById) => _.values(heroesById)
+);</code></pre>
 					</section>
 					<section>
 						<h4>heroes-list.controller</h4>
@@ -328,7 +441,7 @@ export default HeroesListController;</code></pre>
 				</section>
 
 				<section>
-					<h2>Трудности</h2>
+					<h2>С чем пришлось столкнуться</h2>
 					<ul>
 						<li class="fragment">В целом переход на redux-концепцию</li>
 						<li class="fragment">Разбиение на smart и dumb компоненты</li>
@@ -336,6 +449,16 @@ export default HeroesListController;</code></pre>
 					</ul>
 				</section>
 
+				<section>
+					<h2>Что нам дал Redux</h2>
+					<ul>
+						<li class="fragment">Store - единственный источник правды</li>
+						<li class="fragment">Предсказуемый data flow</li>
+						<li class="fragment">Организация кода</li>
+						<li class="fragment">Легкость тестирования</li>
+						<li class="fragment">Developer Tools</li>
+					</ul>
+				</section>
 				<section>
 					<h1>Конец!</h1>
 				</section>

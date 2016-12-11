@@ -36,4 +36,4 @@ store.subscribe(() => {
 // The only way to mutate the internal state is to dispatch an action.
 store.dispatch(ratingUp());
 store.dispatch(ratingDown());
-store.dispatch(ratingUp);
+store.dispatch(ratingUp());
