@@ -173,7 +173,7 @@ const store = createStore(
 						<img src="images/angular.svg" width="500px;">
 					</section>
 					<section>
-						<h4>Неудобная внутренняя сруктура</h4>
+						<h4>Неудобная внутренняя структура</h4>
 						<img src="images/old_structure_expanded.png">
 					</section>
 					<section>
@@ -202,6 +202,10 @@ const store = createStore(
 					<section>
 						<h2>Что в итоге получилось</h2>
 						<h4 class="fragment">посмотрим на примере</h4>
+					</section>
+					<section>
+						<h4>Компоненты</h4>
+						<img src="images/app_components.png">
 					</section>
 					<section>
 						<h4>Новая структура</h4>
@@ -235,10 +239,8 @@ app
     .component('app', AppComponent);
 
 app.config([
-    '$httpProvider', '$urlRouterProvider', '$stateProvider', '$translatePartialLoaderProvider', '$animateProvider',
-    '$ngReduxProvider', '$mdThemingProvider',
-    ($httpProvider, $urlRouterProvider, $stateProvider, $translatePartialLoaderProvider, $animateProvider,
-     $ngReduxProvider, $mdThemingProvider) => {
+    '$ngReduxProvider',
+    ($ngReduxProvider) => {
         $ngReduxProvider.createStoreWith(appRootReducers, [thunkMiddleware], [
             window.devToolsExtension ? window.devToolsExtension() : f => f
         ]);
@@ -365,8 +367,7 @@ export const getHeroes = createSelector(
 					</section>
 					<section>
 						<h4>heroes-list.controller</h4>
-						<pre><code class="hljs">import _ from 'lodash';
-import { observer, observe } from 'redux-observers';
+						<pre><code class="hljs">import { observer, observe } from 'redux-observers';
 
 import { getSelectedHero, getSelectedFilters } from 'module-heroes/common/redux/heroes-page.selectors';
 import { getHeroes, isLoading } from './redux/heroes-list.selectors';
@@ -377,14 +378,7 @@ class HeroesListController {
         this.unobserve = observe($ngRedux, this.defineObservers());
     }
 
-    $onInit() {
-        this.loadHeroes();
-    }
-
-    $onDestroy() {
-        this.unsubscribe();
-        this.unobserve();
-    }
+    ...
 
     defineObservers() {
         const observers = [];
@@ -393,15 +387,7 @@ class HeroesListController {
             state => getSelectedFilters(state),
             (dispatch, current, previous) => {
                 if (current) {
-                    const params = {};
-
-                    _.forEach(current, (value, key) => {
-                        if (!_.isEmpty(value)) {
-                            params[key] = value;
-                        }
-                    });
-
-                    this.loadHeroes({params});
+                    // загружаем список героев
                 }
             }
         ));
@@ -411,15 +397,11 @@ class HeroesListController {
 
     loadHeroes(options) {
         this.dispatchLoadHeroes(options).then(() => {
-            if (this.heroes.length) {
-                this.dispatchSelectHero(this.heroes[0].id);
-            }
+            // по умолчанию, выбираем первого героя из списка
         });
     }
 
-    selectHero(heroId) {
-        this.dispatchSelectHero(heroId);
-    }
+    ...
 
     _mapStateToThis(state) {
         return {
@@ -460,7 +442,29 @@ export default HeroesListController;</code></pre>
 					</ul>
 				</section>
 				<section>
-					<h1>Конец!</h1>
+					<h2>Полезные ссылки</h2>
+					<ul>
+						<li style="padding-bottom: 20px;">
+							Redux документация
+							<div><a href="http://redux.js.org/">http://redux.js.org</a></div>
+							<div><a href="https://rajdee.gitbooks.io/redux-in-russian/content/">https://rajdee.gitbooks.io/redux-in-russian/content</a></div>
+						</li>
+						<li style="padding-bottom: 20px;">
+							ngRedux
+							<div><a href="https://github.com/angular-redux/ng-redux">https://github.com/angular-redux/ng-redux</a></div>
+						</li>
+						<li style="padding-bottom: 20px;">
+							reselect
+							<div><a href="https://github.com/reactjs/reselect">https://github.com/reactjs/reselect</a></div>
+						</li>
+						<li style="padding-bottom: 20px;">
+							Overwatch example
+							<div><a href="https://github.com/krylova-dinara/redux-example">https://github.com/krylova-dinara/redux-example</a></div>
+						</li>
+					</ul>
+				</section>
+				<section>
+					<h2>Спасибо за внимание!</h2>
 				</section>
 			</div>
 		</div>
